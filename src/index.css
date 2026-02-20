@@ -1,0 +1,113 @@
+/* ICQ Classic Theme for UQ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Tahoma, Arial, sans-serif;
+  background: #c0c0c0;
+  color: #000000;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ICQ Window Style */
+.icq-window {
+  background: #ece9d8;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.icq-title-bar {
+  background: linear-gradient(to bottom, #0054e3 0%, #0054e3 50%, #0041b8 50%, #0041b8 100%);
+  color: white;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+}
+
+.icq-btn {
+  padding: 4px 12px;
+  background: #ece9d8;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.icq-btn:active {
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.icq-btn:disabled {
+  color: #808080;
+  cursor: not-allowed;
+}
+
+.icq-input {
+  padding: 4px;
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  background: white;
+  width: 100%;
+}
+
+.icq-input:focus {
+  outline: none;
+  border-color: #0054e3 #0054e3 #0054e3 #0054e3;
+}
+
+/* Status indicators */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #000;
+  display: inline-block;
+}
+
+.status-online { background: #00ff00; }
+.status-away { background: #ffff00; }
+.status-busy { background: #ff0000; }
+.status-invisible { background: #c0c0c0; }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border: 1px solid #808080;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+::-webkit-scrollbar-button {
+  background: #ece9d8;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  height: 16px;
+  width: 16px;
+}

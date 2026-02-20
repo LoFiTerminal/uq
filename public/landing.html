@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UQ - The Spiritual Successor to ICQ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #0a1628 0%, #0d1b2a 50%, #1a0a28 100%);
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '💬';
+      position: absolute;
+      font-size: 200px;
+      opacity: 0.05;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .logo {
+      font-size: 120px;
+      font-weight: bold;
+      background: linear-gradient(45deg, #ff6b00, #ff9500);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      text-shadow: 0 0 30px rgba(255, 107, 0, 0.3);
+    }
+
+    .tagline {
+      font-size: 32px;
+      color: #ff6b00;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #8899aa;
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+
+    /* Status Badges */
+    .status-demo {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 40px 0;
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 25px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 30px;
+      border: 2px solid rgba(255, 107, 0, 0.3);
+    }
+
+    .status-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .status-online { background: #00ff00; color: #00ff00; }
+    .status-away { background: #ffff00; color: #ffff00; }
+    .status-busy { background: #ff0000; color: #ff0000; }
+    .status-invisible { background: #888888; color: #888888; }
+
+    /* Feature Cards */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin: 60px 0;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 107, 0, 0.3);
+      border-radius: 15px;
+      padding: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: #ff6b00;
+      box-shadow: 0 10px 30px rgba(255, 107, 0, 0.2);
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .feature-title {
+      font-size: 24px;
+      color: #ff6b00;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .feature-desc {
+      color: #aabbcc;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    /* App Mockup */
+    .mockup-section {
+      margin: 80px 0;
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: 48px;
+      color: #ff6b00;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .mockup-container {
+      background: #0d1b2a;
+      border: 3px solid #ff6b00;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(255, 107, 0, 0.3);
+      margin-top: 40px;
+    }
+
+    .mockup-header {
+      background: #1a2634;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #ff6b00;
+    }
+
+    .mockup-title {
+      font-size: 24px;
+      color: #ff6b00;
+      font-weight: bold;
+    }
+
+    .mockup-user {
+      color: #aabbcc;
+      font-size: 14px;
+    }
+
+    .mockup-body {
+      display: flex;
+      height: 500px;
+    }
+
+    .mockup-sidebar {
+      width: 300px;
+      background: #1a2634;
+      border-right: 2px solid #ff6b00;
+      padding: 20px;
+    }
+
+    .mockup-contact {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: rgba(255, 107, 0, 0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mockup-contact:hover {
+      background: rgba(255, 107, 0, 0.2);
+    }
+
+    .mockup-contact-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .mockup-contact-info {
+      flex: 1;
+    }
+
+    .mockup-contact-name {
+      font-size: 14px;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .mockup-contact-number {
+      font-size: 12px;
+      color: #ff6b00;
+    }
+
+    .mockup-chat {
+      flex: 1;
+      background: #0d1b2a;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .mockup-chat-placeholder {
+      text-align: center;
+      color: #556677;
+    }
+
+    .mockup-chat-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      text-align: center;
+      padding: 80px 20px;
+      background: rgba(255, 107, 0, 0.05);
+      border-radius: 20px;
+      margin: 60px 0;
+    }
+
+    .cta-title {
+      font-size: 42px;
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+
+    .cta-text {
+      font-size: 18px;
+      color: #aabbcc;
+      margin-bottom: 30px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 20px 50px;
+      background: linear-gradient(45deg, #ff6b00, #ff9500);
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 50px;
+      font-size: 20px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(255, 107, 0, 0.3);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(255, 107, 0, 0.5);
+    }
+
+    /* Timeline */
+    .timeline {
+      margin: 80px 0;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 40px;
+      align-items: flex-start;
+    }
+
+    .timeline-phase {
+      font-size: 48px;
+      color: #ff6b00;
+      font-weight: bold;
+      min-width: 100px;
+    }
+
+    .timeline-content {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 25px;
+      border-radius: 15px;
+      border-left: 4px solid #ff6b00;
+    }
+
+    .timeline-title {
+      font-size: 24px;
+      color: #ff6b00;
+      margin-bottom: 10px;
+    }
+
+    .timeline-features {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .timeline-features li {
+      padding: 8px 0;
+      color: #aabbcc;
+      position: relative;
+      padding-left: 25px;
+    }
+
+    .timeline-features li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #00ff00;
+      font-weight: bold;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #556677;
+      border-top: 2px solid rgba(255, 107, 0, 0.3);
+      margin-top: 80px;
+    }
+
+    .retro-text {
+      font-family: 'Courier New', monospace;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+    }
+
+    @media (max-width: 768px) {
+      .logo { font-size: 80px; }
+      .tagline { font-size: 24px; }
+      .mockup-body { flex-direction: column; height: auto; }
+      .mockup-sidebar { width: 100%; border-right: none; border-bottom: 2px solid #ff6b00; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="logo">UQ</div>
+      <div class="tagline">The Spiritual Successor to ICQ</div>
+      <div class="subtitle">
+        Remember ICQ? That personal, nerdy feel? Those presence indicators? Your unique number?<br>
+        <strong>It's back.</strong> With 2026 AI superpowers.
+      </div>
+
+      <div class="status-demo">
+        <div class="status-item">
+          <div class="status-dot status-online"></div>
+          <span>🟢 Online</span>
+        </div>
+        <div class="status-item">
+          <div class="status-dot status-away"></div>
+          <span>🌙 Away</span>
+        </div>
+        <div class="status-item">
+          <div class="status-dot status-busy"></div>
+          <span>🔴 Busy</span>
+        </div>
+        <div class="status-item">
+          <div class="status-dot status-invisible"></div>
+          <span>👻 Invisible</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <div class="feature-card">
+        <div class="feature-icon">🔢</div>
+        <div class="feature-title">Your UQ Number</div>
+        <div class="feature-desc">
+          Get your unique ID like #48291. No usernames. No @handles. Just your number.
+          Pure nostalgia.
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">💚</div>
+        <div class="feature-title">Presence System</div>
+        <div class="feature-desc">
+          Real presence indicators. See who's online, away, busy, or invisible.
+          Know before you message.
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Magic Link Auth</div>
+        <div class="feature-desc">
+          No passwords to remember. Just email, click, and you're in.
+          Simple. Secure. Modern.
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">AI Translation</div>
+        <div class="feature-desc">
+          Chat with anyone, anywhere. Instant message translation powered by Claude AI.
+          Break language barriers.
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <div class="feature-title">Catch Me Up</div>
+        <div class="feature-desc">
+          Missed 100 messages? AI summarizes what you missed in 2 sentences.
+          Stay in the loop.
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Chat Rooms</div>
+        <div class="feature-desc">
+          Join public rooms by interest tags. Find your people.
+          Like the old ICQ, but better.
+        </div>
+      </div>
+    </section>
+
+    <!-- App Mockup -->
+    <section class="mockup-section">
+      <h2 class="section-title">See It In Action</h2>
+      <p class="subtitle">Classic ICQ soul meets 2026 polish</p>
+
+      <div class="mockup-container">
+        <div class="mockup-header">
+          <div class="mockup-title">UQ</div>
+          <div class="mockup-user">
+            <span style="color: #aabbcc;">alex_tech</span>
+            <span style="color: #ff6b00; font-family: 'Courier New', monospace;"> #48291</span>
+          </div>
+        </div>
+
+        <div class="mockup-body">
+          <div class="mockup-sidebar">
+            <h3 style="color: #ff6b00; margin-bottom: 15px; font-size: 16px;">Contacts</h3>
+
+            <div class="mockup-contact">
+              <div class="mockup-contact-dot" style="background: #00ff00; box-shadow: 0 0 8px #00ff00;"></div>
+              <div class="mockup-contact-info">
+                <div class="mockup-contact-name">sarah_design</div>
+                <div class="mockup-contact-number">#12345</div>
+              </div>
+            </div>
+
+            <div class="mockup-contact">
+              <div class="mockup-contact-dot" style="background: #ffff00; box-shadow: 0 0 8px #ffff00;"></div>
+              <div class="mockup-contact-info">
+                <div class="mockup-contact-name">mike_dev</div>
+                <div class="mockup-contact-number">#67890</div>
+              </div>
+            </div>
+
+            <div class="mockup-contact">
+              <div class="mockup-contact-dot" style="background: #ff0000; box-shadow: 0 0 8px #ff0000;"></div>
+              <div class="mockup-contact-info">
+                <div class="mockup-contact-name">jenny_pm</div>
+                <div class="mockup-contact-number">#23456</div>
+              </div>
+            </div>
+
+            <div class="mockup-contact">
+              <div class="mockup-contact-dot" style="background: #888888;"></div>
+              <div class="mockup-contact-info">
+                <div class="mockup-contact-name">tom_ops</div>
+                <div class="mockup-contact-number">#99999</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-chat">
+            <div class="mockup-chat-placeholder">
+              <div class="mockup-chat-icon">💬</div>
+              <h3 style="font-size: 24px; color: #ffffff; margin-bottom: 10px;">
+                Welcome to UQ
+              </h3>
+              <p style="color: #778899;">
+                Select a contact to start chatting<br>
+                That familiar feeling, reimagined
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="timeline">
+      <h2 class="section-title" style="text-align: center; margin-bottom: 60px;">
+        The Roadmap
+      </h2>
+
+      <div class="timeline-item">
+        <div class="timeline-phase">01</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Phase 1 — Foundation ✅</div>
+          <ul class="timeline-features">
+            <li>Magic link authentication (no passwords!)</li>
+            <li>Unique UQ numbers for every user</li>
+            <li>Real-time 1:1 messaging</li>
+            <li>Full presence system (online/away/busy/invisible)</li>
+            <li>Contact list as your home screen</li>
+            <li>Classic ICQ-inspired dark UI</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-phase">02</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Phase 2 — The Soul</div>
+          <ul class="timeline-features">
+            <li>"Uh-oh!" notification sounds</li>
+            <li>Public chat rooms by interest tags</li>
+            <li>User profiles at /u/[uq-number]</li>
+            <li>"Last seen" and idle detection</li>
+            <li>File sharing and image uploads</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-phase">03</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Phase 3 — AI Superpowers</div>
+          <ul class="timeline-features">
+            <li>Inline AI translator for any language</li>
+            <li>"Catch me up" chat summaries</li>
+            <li>Tone assist indicator</li>
+            <li>AI-powered contact matching</li>
+            <li>Smart reply suggestions</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <h2 class="cta-title">
+        Millions are looking for an ICQ successor
+      </h2>
+      <p class="cta-text">
+        <span class="retro-text">>>> This is our moment.</span>
+      </p>
+      <a href="/" class="cta-button">Get Your UQ Number</a>
+      <p style="margin-top: 20px; color: #556677; font-size: 14px;">
+        Coming soon • Built with React + Supabase + Claude AI
+      </p>
+    </section>
+  </div>
+
+  <footer>
+    <p style="font-size: 14px; margin-bottom: 10px;">
+      Built with nostalgia 💚 and modern tech 🚀
+    </p>
+    <p style="font-size: 12px;">
+      UQ — The messenger that feels like coming home
+    </p>
+    <p style="margin-top: 20px; font-size: 11px; color: #334455;">
+      Not affiliated with ICQ LLC. A spiritual successor built for the nostalgic generation.
+    </p>
+  </footer>
+</body>
+</html>
