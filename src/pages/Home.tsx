@@ -13,6 +13,10 @@ export default function Home() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [showAddContact, setShowAddContact] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const MESSAGE_PAGE_SIZE = 50;
 
   useEffect(() => {
     if (isConfigured) {
@@ -24,56 +28,122 @@ export default function Home() {
   useEffect(() => {
     if (selectedContactId && currentUser && isConfigured) {
       loadMessages(selectedContactId);
-      subscribeToMessages(selectedContactId);
+      return subscribeToMessages(selectedContactId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedContactId, currentUser]);
 
   const loadUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
 
-      if (data) {
-        setCurrentUser(data);
+      if (user) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setCurrentUser(data);
+        }
       }
+    } catch (error) {
+      console.error('Error loading user data:', error);
     }
   };
 
   const loadContacts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) return;
 
-    const { data } = await supabase
-      .from('contacts')
-      .select(`
-        *,
-        contact_user:users!contacts_contact_id_fkey(*)
-      `)
-      .eq('user_id', user.id);
+      const { data, error } = await supabase
+        .from('contacts')
+        .select(`
+          *,
+          contact_user:users!contacts_contact_id_fkey(*)
+        `)
+        .eq('user_id', user.id);
 
-    if (data) {
-      setContacts(data as Contact[]);
+      if (error) throw error;
+
+      if (data) {
+        setContacts(data as Contact[]);
+      }
+    } catch (error) {
+      console.error('Error loading contacts:', error);
     }
   };
 
-  const loadMessages = async (contactId: string) => {
+  const loadMessages = async (contactId: string, limit: number = MESSAGE_PAGE_SIZE) => {
     if (!currentUser) return;
 
-    const { data } = await supabase
-      .from('messages')
-      .select(`
-        *,
-        sender:users!messages_sender_id_fkey(*)
-      `)
-      .or(`and(sender_id.eq.${currentUser.id},recipient_id.eq.${contactId}),and(sender_id.eq.${contactId},recipient_id.eq.${currentUser.id})`)
-      .order('created_at', { ascending: true });
+    try {
+      // Load one extra to check if there are more messages
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:users!messages_sender_id_fkey(*)
+        `)
+        .or(`and(sender_id.eq.${currentUser.id},recipient_id.eq.${contactId}),and(sender_id.eq.${contactId},recipient_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: false })
+        .limit(limit + 1);
 
-    if (data) {
-      setMessages(data as Message[]);
+      if (error) throw error;
+
+      if (data) {
+        const hasMore = data.length > limit;
+        const messagesToShow = hasMore ? data.slice(0, limit) : data;
+
+        setHasMoreMessages(hasMore);
+        // Reverse to show oldest first
+        setMessages((messagesToShow as Message[]).reverse());
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (!currentUser || !selectedContactId || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const oldestMessage = messages[0];
+      if (!oldestMessage) return;
+
+      // Load messages older than the oldest current message
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:users!messages_sender_id_fkey(*)
+        `)
+        .or(`and(sender_id.eq.${currentUser.id},recipient_id.eq.${selectedContactId}),and(sender_id.eq.${selectedContactId},recipient_id.eq.${currentUser.id})`)
+        .lt('created_at', oldestMessage.created_at)
+        .order('created_at', { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE + 1);
+
+      if (error) throw error;
+
+      if (data) {
+        const hasMore = data.length > MESSAGE_PAGE_SIZE;
+        const messagesToAdd = hasMore ? data.slice(0, MESSAGE_PAGE_SIZE) : data;
+
+        setHasMoreMessages(hasMore);
+        // Prepend older messages (reversed to maintain chronological order)
+        setMessages((prev) => [...(messagesToAdd as Message[]).reverse(), ...prev]);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -90,11 +160,23 @@ export default function Home() {
           table: 'messages',
           filter: `recipient_id=eq.${currentUser.id}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMessage = payload.new as Message;
           if (newMessage.sender_id === contactId) {
-            setMessages((prev) => [...prev, newMessage]);
-            playMessageSound();
+            // Fetch the complete message with sender data
+            const { data } = await supabase
+              .from('messages')
+              .select(`
+                *,
+                sender:users!messages_sender_id_fkey(*)
+              `)
+              .eq('id', newMessage.id)
+              .single();
+
+            if (data) {
+              setMessages((prev) => [...prev, data as Message]);
+              playMessageSound();
+            }
           }
         }
       )
@@ -108,27 +190,45 @@ export default function Home() {
   const handleSendMessage = async (content: string) => {
     if (!currentUser || !selectedContactId || !isConfigured) return;
 
-    const { error } = await supabase.from('messages').insert({
-      sender_id: currentUser.id,
-      recipient_id: selectedContactId,
-      content,
-      created_at: new Date().toISOString(),
-    });
+    try {
+      const { data, error } = await supabase.from('messages').insert({
+        sender_id: currentUser.id,
+        recipient_id: selectedContactId,
+        content,
+        created_at: new Date().toISOString(),
+      }).select(`
+        *,
+        sender:users!messages_sender_id_fkey(*)
+      `).single();
 
-    if (!error) {
-      loadMessages(selectedContactId);
+      if (error) throw error;
+
+      if (data) {
+        // Optimistically add the sent message to state
+        setMessages((prev) => [...prev, data as Message]);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
     }
   };
 
   const handleStatusChange = async (status: string) => {
     if (!currentUser || !isConfigured) return;
 
-    await supabase
-      .from('users')
-      .update({ status })
-      .eq('id', currentUser.id);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ status })
+        .eq('id', currentUser.id);
 
-    setCurrentUser({ ...currentUser, status: status as any });
+      if (error) throw error;
+
+      setCurrentUser({ ...currentUser, status: status as User['status'] });
+    } catch (error) {
+      console.error('Error changing status:', error);
+      alert('Failed to change status. Please try again.');
+    }
   };
 
   const handleSignOut = async () => {
@@ -209,6 +309,9 @@ export default function Home() {
           messages={messages}
           currentUserId={currentUser?.id || ''}
           onSendMessage={handleSendMessage}
+          hasMoreMessages={hasMoreMessages}
+          onLoadMore={loadMoreMessages}
+          isLoadingMore={isLoadingMore}
         />
       </div>
     </div>

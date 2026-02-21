@@ -83,6 +83,31 @@ body {
 .status-busy { background: #ff0000; }
 .status-invisible { background: #c0c0c0; }
 
+/* Contact list item */
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  background: transparent;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.1s ease;
+}
+
+.contact-item:hover {
+  background: #e0e0e0;
+}
+
+.contact-item.selected {
+  background: #0054e3;
+  color: white;
+}
+
+.contact-item.selected:hover {
+  background: #0054e3;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 16px;

@@ -7,18 +7,42 @@ interface ChatWindowProps {
   messages: Message[];
   currentUserId: string;
   onSendMessage: (content: string) => void;
+  hasMoreMessages?: boolean;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
 }
 
-export default function ChatWindow({ selectedContact, messages, currentUserId, onSendMessage }: ChatWindowProps) {
+export default function ChatWindow({
+  selectedContact,
+  messages,
+  currentUserId,
+  onSendMessage,
+  hasMoreMessages = false,
+  onLoadMore,
+  isLoadingMore = false
+}: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  };
+
+  const isNearBottom = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return true;
+
+    const threshold = 100; // pixels from bottom
+    const position = container.scrollHeight - container.scrollTop - container.clientHeight;
+    return position < threshold;
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Only auto-scroll if user is near the bottom (not browsing history)
+    if (isNearBottom()) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,12 +80,15 @@ export default function ChatWindow({ selectedContact, messages, currentUserId, o
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       {/* Messages Area */}
-      <div style={{
-        flex: 1,
-        overflow: 'auto',
-        padding: '10px',
-        background: 'white'
-      }}>
+      <div
+        ref={messagesContainerRef}
+        style={{
+          flex: 1,
+          overflow: 'auto',
+          padding: '10px',
+          background: 'white'
+        }}
+      >
         {messages.length === 0 ? (
           <div style={{
             display: 'flex',
@@ -75,6 +102,18 @@ export default function ChatWindow({ selectedContact, messages, currentUserId, o
           </div>
         ) : (
           <>
+            {hasMoreMessages && (
+              <div style={{ textAlign: 'center', padding: '10px' }}>
+                <button
+                  onClick={onLoadMore}
+                  disabled={isLoadingMore}
+                  className="icq-btn"
+                  style={{ fontSize: '10px' }}
+                >
+                  {isLoadingMore ? 'Loading...' : '⬆️ Load Older Messages'}
+                </button>
+              </div>
+            )}
             {messages.map((message) => (
               <MessageBubble
                 key={message.id}

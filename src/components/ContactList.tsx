@@ -39,21 +39,9 @@ export default function ContactList({ contacts, selectedContactId, onSelectConta
               <div
                 key={contact.id}
                 onClick={() => onSelectContact(contact.contact_id)}
+                className={`contact-item ${isSelected ? 'selected' : ''}`}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 8px',
-                  cursor: 'pointer',
-                  background: isSelected ? '#0054e3' : 'transparent',
-                  color: isSelected ? 'white' : 'black',
-                  borderBottom: '1px solid #f0f0f0'
-                }}
-                onMouseOver={(e) => {
-                  if (!isSelected) e.currentTarget.style.background = '#e0e0e0';
-                }}
-                onMouseOut={(e) => {
-                  if (!isSelected) e.currentTarget.style.background = 'transparent';
+                  color: isSelected ? 'white' : 'black'
                 }}
               >
                 <div style={{

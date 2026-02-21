@@ -15,6 +15,10 @@ export default function HomeICQStyle() {
   const [showUserRegistry, setShowUserRegistry] = useState(false);
   const [messageInput, setMessageInput] = useState('');
   const [showOnlineOnly, setShowOnlineOnly] = useState(true);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const MESSAGE_PAGE_SIZE = 50;
 
   useEffect(() => {
     if (isConfigured) {
@@ -26,36 +30,103 @@ export default function HomeICQStyle() {
   useEffect(() => {
     if (selectedContactId && currentUser && isConfigured) {
       loadMessages(selectedContactId);
-      subscribeToMessages(selectedContactId);
+      return subscribeToMessages(selectedContactId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedContactId, currentUser]);
 
   const loadUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase.from('users').select('*').eq('id', user.id).single();
-      if (data) setCurrentUser(data);
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+
+      if (user) {
+        const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single();
+        if (error) throw error;
+        if (data) setCurrentUser(data);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
     }
   };
 
   const loadContacts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase
-      .from('contacts')
-      .select(`*, contact_user:users!contacts_contact_id_fkey(*)`)
-      .eq('user_id', user.id);
-    if (data) setContacts(data as Contact[]);
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .select(`*, contact_user:users!contacts_contact_id_fkey(*)`)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      if (data) setContacts(data as Contact[]);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+    }
   };
 
-  const loadMessages = async (contactId: string) => {
+  const loadMessages = async (contactId: string, limit: number = MESSAGE_PAGE_SIZE) => {
     if (!currentUser) return;
-    const { data } = await supabase
-      .from('messages')
-      .select(`*, sender:users!messages_sender_id_fkey(*)`)
-      .or(`and(sender_id.eq.${currentUser.id},recipient_id.eq.${contactId}),and(sender_id.eq.${contactId},recipient_id.eq.${currentUser.id})`)
-      .order('created_at', { ascending: true });
-    if (data) setMessages(data as Message[]);
+
+    try {
+      // Load one extra to check if there are more messages
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`*, sender:users!messages_sender_id_fkey(*)`)
+        .or(`and(sender_id.eq.${currentUser.id},recipient_id.eq.${contactId}),and(sender_id.eq.${contactId},recipient_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: false })
+        .limit(limit + 1);
+
+      if (error) throw error;
+
+      if (data) {
+        const hasMore = data.length > limit;
+        const messagesToShow = hasMore ? data.slice(0, limit) : data;
+
+        setHasMoreMessages(hasMore);
+        // Reverse to show oldest first
+        setMessages((messagesToShow as Message[]).reverse());
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (!currentUser || !selectedContactId || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const oldestMessage = messages[0];
+      if (!oldestMessage) return;
+
+      // Load messages older than the oldest current message
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`*, sender:users!messages_sender_id_fkey(*)`)
+        .or(`and(sender_id.eq.${currentUser.id},recipient_id.eq.${selectedContactId}),and(sender_id.eq.${selectedContactId},recipient_id.eq.${currentUser.id})`)
+        .lt('created_at', oldestMessage.created_at)
+        .order('created_at', { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE + 1);
+
+      if (error) throw error;
+
+      if (data) {
+        const hasMore = data.length > MESSAGE_PAGE_SIZE;
+        const messagesToAdd = hasMore ? data.slice(0, MESSAGE_PAGE_SIZE) : data;
+
+        setHasMoreMessages(hasMore);
+        // Prepend older messages (reversed to maintain chronological order)
+        setMessages((prev) => [...(messagesToAdd as Message[]).reverse(), ...prev]);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
   };
 
   const subscribeToMessages = (contactId: string) => {
@@ -63,11 +134,20 @@ export default function HomeICQStyle() {
     const channel = supabase.channel('messages').on(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'messages', filter: `recipient_id=eq.${currentUser.id}` },
-      (payload) => {
+      async (payload) => {
         const newMessage = payload.new as Message;
         if (newMessage.sender_id === contactId) {
-          setMessages((prev) => [...prev, newMessage]);
-          playMessageSound();
+          // Fetch the complete message with sender data
+          const { data } = await supabase
+            .from('messages')
+            .select(`*, sender:users!messages_sender_id_fkey(*)`)
+            .eq('id', newMessage.id)
+            .single();
+
+          if (data) {
+            setMessages((prev) => [...prev, data as Message]);
+            playMessageSound();
+          }
         }
       }
     ).subscribe();
@@ -77,30 +157,60 @@ export default function HomeICQStyle() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser || !selectedContactId || !messageInput.trim()) return;
-    await supabase.from('messages').insert({
-      sender_id: currentUser.id,
-      recipient_id: selectedContactId,
-      content: messageInput.trim(),
-      created_at: new Date().toISOString(),
-    });
-    setMessageInput('');
-    loadMessages(selectedContactId);
+
+    try {
+      const { data, error } = await supabase.from('messages').insert({
+        sender_id: currentUser.id,
+        recipient_id: selectedContactId,
+        content: messageInput.trim(),
+        created_at: new Date().toISOString(),
+      }).select(`*, sender:users!messages_sender_id_fkey(*)`).single();
+
+      if (error) throw error;
+
+      if (data) {
+        // Optimistically add the sent message to state
+        setMessages((prev) => [...prev, data as Message]);
+        setMessageInput('');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
+    }
   };
 
   const handleAddUserFromRegistry = async (userId: string) => {
     if (!currentUser) return;
-    await supabase.from('contacts').insert({
-      user_id: currentUser.id,
-      contact_id: userId,
-    });
-    loadContacts();
-    setShowUserRegistry(false);
+
+    try {
+      const { error } = await supabase.from('contacts').insert({
+        user_id: currentUser.id,
+        contact_id: userId,
+      });
+
+      if (error) throw error;
+
+      loadContacts();
+      setShowUserRegistry(false);
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      alert('Failed to add contact. They may already be in your list.');
+    }
   };
 
   const handleStatusChange = async (newStatus: User['status']) => {
     if (!currentUser) return;
-    await supabase.from('users').update({ status: newStatus }).eq('id', currentUser.id);
-    setCurrentUser({ ...currentUser, status: newStatus });
+
+    try {
+      const { error } = await supabase.from('users').update({ status: newStatus }).eq('id', currentUser.id);
+
+      if (error) throw error;
+
+      setCurrentUser({ ...currentUser, status: newStatus });
+    } catch (error) {
+      console.error('Error changing status:', error);
+      alert('Failed to change status. Please try again.');
+    }
   };
 
   const selectedContact = contacts.find((c) => c.contact_id === selectedContactId)?.contact_user || null;
@@ -272,6 +382,18 @@ export default function HomeICQStyle() {
           </div>
 
           <div style={{ flex: 1, overflow: 'auto', padding: '15px', background: 'white' }}>
+            {hasMoreMessages && (
+              <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                <button
+                  onClick={loadMoreMessages}
+                  disabled={isLoadingMore}
+                  className="icq-btn"
+                  style={{ fontSize: '13px', padding: '8px 15px' }}
+                >
+                  {isLoadingMore ? 'Loading...' : '⬆️ Load Older Messages'}
+                </button>
+              </div>
+            )}
             {messages.map(msg => (
               <div key={msg.id} style={{ marginBottom: '12px' }}>
                 <div style={{ color: msg.sender_id === currentUser?.id ? '#0054e3' : '#666', fontWeight: 'bold', fontSize: '14px' }}>
