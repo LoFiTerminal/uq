@@ -1,0 +1,29 @@
+🌺 UQ MESSENGER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Welcome to UQ Messenger!
+
+Click the link below to sign in to your UQ account:
+
+{{ .ConfirmationURL }}
+
+This magic link will expire in 1 hour for security reasons.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHAT IS UQ MESSENGER?
+
+A modern ICQ spiritual successor with:
+• Real-time instant messaging
+• Unique 5-digit UQ numbers
+• Classic "Uh-oh!" notification sounds
+• Nostalgic Windows 98 design
+• Privacy-focused (no ads, no tracking)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+UQ Messenger - The ICQ Spiritual Successor
+https://github.com/LoFiTerminal/uq
+
+If you didn't request this email, you can safely ignore it.
+This magic link will expire in 1 hour.

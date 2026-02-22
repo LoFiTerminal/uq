@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your UQ Magic Link</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Tahoma, Arial, sans-serif;
+      background-color: #c0c0c0;
+      color: #000000;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ece9d8;
+      border: 3px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .email-header {
+      background: linear-gradient(to bottom, #0054e3 0%, #0054e3 50%, #0041b8 50%, #0041b8 100%);
+      color: white;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .email-body {
+      padding: 30px 24px;
+      background: white;
+      border: 2px solid #808080;
+      margin: 10px;
+    }
+    .logo {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .greeting {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: #0054e3;
+    }
+    .message {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      color: #333;
+    }
+    .cta-button {
+      display: inline-block;
+      background: #ece9d8;
+      border: 3px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      padding: 12px 32px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #000000;
+      text-decoration: none;
+      font-family: Tahoma, Arial, sans-serif;
+      text-align: center;
+      cursor: pointer;
+    }
+    .cta-button:hover {
+      border-color: #808080 #ffffff #ffffff #808080;
+    }
+    .cta-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .alternative-link {
+      font-size: 11px;
+      color: #666;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .alternative-link a {
+      color: #0054e3;
+      word-break: break-all;
+    }
+    .footer {
+      padding: 20px;
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      background: #f5f5f5;
+      border-top: 1px solid #d0d0d0;
+    }
+    .footer a {
+      color: #0054e3;
+      text-decoration: none;
+    }
+    .feature-list {
+      background: #f9f9f9;
+      padding: 16px;
+      border-left: 4px solid #0054e3;
+      margin: 20px 0;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .feature-list li {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="email-header">
+      🌺 UQ Messenger
+    </div>
+
+    <!-- Body -->
+    <div class="email-body">
+      <!-- Logo -->
+      <div class="logo">💬</div>
+
+      <!-- Greeting -->
+      <div class="greeting">Welcome to UQ Messenger!</div>
+
+      <!-- Message -->
+      <div class="message">
+        Click the button below to sign in to your UQ account. This magic link will expire in 1 hour for security reasons.
+      </div>
+
+      <!-- CTA Button -->
+      <div class="cta-container">
+        <a href="{{ .ConfirmationURL }}" class="cta-button">
+          🔑 Sign In to UQ
+        </a>
+      </div>
+
+      <!-- What is UQ? -->
+      <div class="feature-list">
+        <strong>What is UQ Messenger?</strong><br>
+        A modern ICQ spiritual successor with:
+        <ul style="margin: 12px 0 0 20px; padding: 0;">
+          <li>💬 Real-time instant messaging</li>
+          <li>🌺 Unique 5-digit UQ numbers</li>
+          <li>🔔 Classic "Uh-oh!" notification sounds</li>
+          <li>🎨 Nostalgic Windows 98 design</li>
+          <li>🔒 Privacy-focused (no ads, no tracking)</li>
+        </ul>
+      </div>
+
+      <!-- Alternative Link -->
+      <div class="alternative-link">
+        <strong>Button not working?</strong><br>
+        Copy and paste this link into your browser:<br>
+        <a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <strong>UQ Messenger</strong> - The ICQ Spiritual Successor<br>
+      <a href="https://github.com/LoFiTerminal/uq">View on GitHub</a><br><br>
+
+      If you didn't request this email, you can safely ignore it.<br>
+      This magic link will expire in 1 hour.
+    </div>
+  </div>
+</body>
+</html>
